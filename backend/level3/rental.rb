@@ -12,46 +12,39 @@ class Rental
 
   def compute_rental_price(car_price_per_km, car_price_per_day)
     (compute_rental_price_distance_component(car_price_per_km) +
-    compute_rental_price_time_component(car_price_per_day)).to_i
+    compute_rental_price_time_component(car_price_per_day, self.length).to_i).to_i
   end
 
   def compute_rental_price_distance_component(car_price_per_km)
     self.distance * car_price_per_km
   end
 
-  def compute_rental_price_time_component(car_price_per_day)
+  def compute_rental_price_time_component(car_price_per_day, rental_length)
     price_per_day = car_price_per_day
     price_per_day_discounted_by_10 = price_per_day * 0.9
     price_per_day_discounted_by_30 = price_per_day * 0.7
     price_per_day_discounted_by_50 = price_per_day * 0.5
+    discount_by_10_min_threshold = 1
+    discount_by_10_max_threshold = 4
+    discount_by_30_min_threshold = 4
+    discount_by_30_max_threshold = 10
+    discount_by_50_min_threshold = 10
 
-    if self.length == 1
-      nb_day_at_full_price = 1
-      total_price_time_component = nb_day_at_full_price * price_per_day
-    elsif self.length.between?(1,4)
-      nb_day_at_full_price = 1
-      nb_day_at_price_discounted_by_10 = self.length - 1
-      total_price_time_component = nb_day_at_full_price * price_per_day +
-      nb_day_at_price_discounted_by_10 * price_per_day_discounted_by_10
-    elsif self.length.between?(4,10)
-      nb_day_at_full_price = 1
-      nb_day_at_price_discounted_by_10 = 3
-      nb_day_at_price_discounted_by_30 = self.length -
-      (nb_day_at_full_price + nb_day_at_price_discounted_by_10)
-      total_price_time_component = nb_day_at_full_price * price_per_day +
-      nb_day_at_price_discounted_by_10 * price_per_day_discounted_by_10 +
-      nb_day_at_price_discounted_by_30 * price_per_day_discounted_by_30
-    elsif self.length > 11
-      nb_day_at_full_price = 1
-      nb_day_at_price_discounted_by_10 = 3
-      nb_day_at_price_discounted_by_30 = 6
-      nb_day_at_price_discounted_by_50 = self.length -
-      (nb_day_at_full_price + nb_day_at_price_discounted_by_10 +
-        nb_day_at_price_discounted_by_30)
-      total_price_time_component = nb_day_at_full_price * price_per_day +
-      nb_day_at_price_discounted_by_10 * price_per_day_discounted_by_10 +
-      nb_day_at_price_discounted_by_30 * price_per_day_discounted_by_30 +
-      nb_day_at_price_discounted_by_50 * price_per_day_discounted_by_50
-    end
+    days_at_full_price = rental_length >= 1 ? 1 : rental_length # 1 day 100
+    days_at_10_discount = rental_length > discount_by_10_max_threshold ? (discount_by_10_max_threshold -
+      discount_by_10_min_threshold ) : ( rental_length - discount_by_10_min_threshold ) # 3 day 270
+    days_at_30_discount = rental_length > discount_by_30_max_threshold ? (discount_by_30_max_threshold -
+      discount_by_30_min_threshold ) : ( rental_length - discount_by_30_min_threshold ) # 6 day 420
+    days_at_50_discount = rental_length > discount_by_50_min_threshold ? (rental_length -
+      discount_by_50_min_threshold ) : 0 # 2 day 100
+
+    full_price_component = (days_at_full_price > 0 ? days_at_full_price : 0) * price_per_day
+    price_discount_by_10_component = (days_at_10_discount > 0 ? days_at_10_discount : 0) * price_per_day_discounted_by_10
+    price_discount_by_30_component = (days_at_30_discount > 0 ? days_at_30_discount : 0) * price_per_day_discounted_by_30
+    price_discount_by_50_component = (days_at_50_discount > 0 ? days_at_50_discount : 0) * price_per_day_discounted_by_50
+    price = full_price_component.to_i +
+    price_discount_by_10_component.to_i +
+    price_discount_by_30_component.to_i +
+    price_discount_by_50_component.to_i
   end
 end

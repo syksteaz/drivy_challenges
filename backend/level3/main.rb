@@ -15,7 +15,7 @@ require_relative 'commission'
       results << prepare_intermediary_result_hash_of_data(rental.id, rental.price, commission)
     end
     write_to_json_file(prepare_hash_of_date_to_be_transfered_to_json(results))
-    # puts JSON.pretty_generate(prepare_hash_of_date_to_be_transfered_to_json(results))
+    puts JSON.pretty_generate(prepare_hash_of_date_to_be_transfered_to_json(results))
   end
 
   private
