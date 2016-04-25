@@ -1,5 +1,5 @@
 class Rental
-  attr_accessor :id, :car_id, :start_date, :end_date, :length, :distance, :price, :deductible_reduction?
+  attr_accessor :id, :car_id, :start_date, :end_date, :length, :distance, :price, :is_deductible_reduction, :deductible_reduction_amount
 
   def initialize(rental_data)
     @id = rental_data["id"]
@@ -8,12 +8,16 @@ class Rental
     @end_date = Date.parse(rental_data["end_date"]).mjd
     @length = Date.parse(rental_data["end_date"]).mjd - Date.parse(rental_data["start_date"]).mjd + 1
     @distance = rental_data["distance"]
-    @deductible_reduction? = rental_data["deductible_reduction"]
+    @is_deductible_reduction = rental_data["deductible_reduction"]
   end
 
   def compute_rental_price(car_price_per_km, car_price_per_day)
     (compute_rental_price_distance_component(car_price_per_km) +
     compute_rental_price_time_component(car_price_per_day, self.length).to_i).to_i
+  end
+
+  def compute_rental_price_distance_component(car_price_per_km)
+    self.distance * car_price_per_km
   end
 
   def compute_rental_price_time_component(car_price_per_day, rental_length)
@@ -45,8 +49,8 @@ class Rental
     price_discount_by_50_component.to_i
   end
 
-  def compute_deductible_reduction_amount(rental_length, deductible_reduction?)
+  def compute_deductible_reduction_amount(rental_length, is_deductible_reduction)
     deductible_reduction_price_per_day = 400
-    deductible_reduction? ? (rental_length * deductible_reduction_price_per_day) : 0
+    is_deductible_reduction ? (rental_length * deductible_reduction_price_per_day) : 0
   end
 end
