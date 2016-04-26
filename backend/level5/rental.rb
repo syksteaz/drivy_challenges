@@ -12,7 +12,7 @@ class Rental
   end
 
   def compute_rental_price(car_price_per_km, car_price_per_day)
-    (compute_rental_price_distance_component(car_price_per_km) +
+    self.price = (compute_rental_price_distance_component(car_price_per_km) +
     compute_rental_price_time_component(car_price_per_day, self.length).to_i).to_i
   end
 
