@@ -12,3 +12,11 @@
     { "id": 2, "rental_id": 3, "start_date": "2015-07-4" }
   ]
 }
+
+// what do you want to do ?
+
+// we have an old_rental_hash
+// we want to build a new one
+
+// let's say the new one has the same data as the old one
+// and we replace each key of the new one which is found in rental_modifications
