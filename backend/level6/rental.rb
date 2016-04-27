@@ -55,8 +55,7 @@ class Rental
   end
 
   def compute_who_owe_what(list_of_commissions, deductible_reduction_amount)
-    who_owe_what_results = Array.new
-    list_of_amounts = Hash.new
+    who_owe_what_results = []
     list_of_amounts = {
       driver: self.price + deductible_reduction_amount,
       owner: (self.price * 0.7).to_i,
@@ -67,7 +66,7 @@ class Rental
 
     list_of_actors_involved_in_payment_process = %w(driver owner insurance assistance drivy)
     list_of_actors_involved_in_payment_process.each do |actor|
-      hash_of_results = Hash.new
+      hash_of_results = {}
       list_of_info_to_produce = %w(who type amount)
 
       hash_of_results[list_of_info_to_produce[0]] = actor
