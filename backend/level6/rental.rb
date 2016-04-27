@@ -80,4 +80,17 @@ class Rental
     end
     return who_owe_what_results
   end
+
+  def compute_rental_modifications_who_owe_what(car)
+    old_rental.compute_rental_price(car.price_per_km, car.price_per_day)
+    old_commission = Commission.new.computation_of_commission_amount_and_fees(old_rental.price, old_rental.length)
+    old_rental.deductible_reduction_amount = old_rental.compute_deductible_reduction_amount(old_rental.length, old_rental.is_deductible_reduction)
+    # from here we cant to compute metrics on new data
+    new_rental.compute_rental_price(car.price_per_km, car.price_per_day)
+    new_commission = Commission.new.computation_of_commission_amount_and_fees(new_rental.price, new_rental.length)
+    new_rental.deductible_reduction_amount = new_rental.compute_deductible_reduction_amount(new_rental.length, new_rental.is_deductible_reduction)
+    # from here we cant to compute difference between new and old data
+    @old_actions = old_rental.compute_who_owe_what(old_commission, old_rental.deductible_reduction_amount)
+    @new_actions = new_rental.compute_who_owe_what(new_commission, new_rental.deductible_reduction_amount)
+  end
 end
