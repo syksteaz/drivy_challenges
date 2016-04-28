@@ -1,4 +1,5 @@
 class Car
+  # the Car class aims at creating a new car
   attr_accessor :id, :price_per_day, :price_per_km
 
   def initialize(car_data)
