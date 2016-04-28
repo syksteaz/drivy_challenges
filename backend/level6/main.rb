@@ -8,7 +8,6 @@ require_relative 'commission'
 def produce_output_data_from_input_data # to be renamed in intialize_data_and_structure_output_data ?
   raw_input = JSON.parse(IO.read('data.json'))
   results = []
-
   raw_input['rental_modifications'].each do |rental_data|
     old_rental_data = raw_input["rentals"].find { |h| h["id"] == rental_data["rental_id"] }
     old_rental = Rental.new(old_rental_data)
@@ -17,39 +16,16 @@ def produce_output_data_from_input_data # to be renamed in intialize_data_and_st
       new_rental_data[key] = rental_data[key] if rental_data[key] != nil
     end
     new_rental = Rental.new(new_rental_data)
-    # car data do not change, it's a kind of constant
     car = Car.new(raw_input['cars'].select { |c| c['id'] == new_rental.car_id }) # we can use it for both old and new rental
-    # from here we cant to compute metrics on old data
-
-    old_rental.compute_who_owe_what_after_rental_modifications(car, @old_actions)
-    new_rental.compute_who_owe_what_after_rental_modifications(car, @new_actions)
-
-    # def compute_rental_modifications_who_owe_what(car, @variable_name)
-    #   old_rental.compute_rental_price(car.price_per_km, car.price_per_day)
-    #   old_commission = Commission.new.computation_of_commission_amount_and_fees(old_rental.price, old_rental.length)
-    #   old_rental.deductible_reduction_amount = old_rental.compute_deductible_reduction_amount(old_rental.length, old_rental.is_deductible_reduction)
-    #   # from here we cant to compute metrics on new data
-    #   new_rental.compute_rental_price(car.price_per_km, car.price_per_day)
-    #   new_commission = Commission.new.computation_of_commission_amount_and_fees(new_rental.price, new_rental.length)
-    #   new_rental.deductible_reduction_amount = new_rental.compute_deductible_reduction_amount(new_rental.length, new_rental.is_deductible_reduction)
-    #   # from here we cant to compute difference between new and old data
-    #   @old_actions = old_rental.compute_who_owe_what(old_commission, old_rental.deductible_reduction_amount)
-    #   @new_actions = new_rental.compute_who_owe_what(new_commission, new_rental.deductible_reduction_amount)
-    # end
-
-    def compute_rental_modifications_who_owe_what(car, variable_name)
-      self.compute_rental_price(car.price_per_km, car.price_per_day)
-      old_commission = Commission.new.computation_of_commission_amount_and_fees(self.price, self.length)
-      self.deductible_reduction_amount = self.compute_deductible_reduction_amount(self.length, self.is_deductible_reduction)
-      variable_name = self.compute_who_owe_what(old_commission, self.deductible_reduction_amount)
-    end
+    old_actions = old_rental.compute_who_owe_what_rental_modifications(car)
+    new_actions = new_rental.compute_who_owe_what_rental_modifications(car)
 
     ################"" here is a method to compute the changes in amount and the type of payment (debit / credit)
     change_actions = []
-    @new_actions.each do |new_action|
+    new_actions.each do |new_action|
       each_action_result = {}
       # we select the hash of data in old_actions corresponding to the 'who' of the current hash
-      old_action = @old_actions.select { |k| k['who'] == new_action['who'] }.first
+      old_action = old_actions.select { |k| k['who'] == new_action['who'] }.first
       rental_modification_amount = new_action['amount'] - old_action['amount']
       each_action_result['who'] = new_action['who']
       if rental_modification_amount < 0.0
