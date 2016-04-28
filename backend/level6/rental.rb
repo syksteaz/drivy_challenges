@@ -83,9 +83,9 @@ class Rental
 
   def compute_who_owe_what_after_rental_modifications(car)
     self.compute_rental_price(car.price_per_km, car.price_per_day)
-    old_commission = Commission.new.computation_of_commission_amount_and_fees(self.price, self.length)
+    commission = Commission.new.computation_of_commission_amount_and_fees(self.price, self.length)
     self.deductible_reduction_amount = self.compute_deductible_reduction_amount(self.length, self.is_deductible_reduction)
-    self.compute_who_owe_what(old_commission, self.deductible_reduction_amount)
+    self.compute_who_owe_what(commission, self.deductible_reduction_amount)
   end
 
   def compute_change_actions(old_rental, new_rental, car)
