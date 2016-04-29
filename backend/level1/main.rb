@@ -1,35 +1,25 @@
 require 'json'
 require 'date'
+require 'pry'
 
-raw_input = JSON.parse(IO.read('data.json'))
+require_relative 'car'
+require_relative 'rental'
 
-  def price_of_rental
+  def price_of_rental # this method is doing way to much things.. parsing json, creating rental object and car object, computing total_price, preparing json ...
+    raw_input = JSON.parse(IO.read('data.json'))
     results = Array.new
-    raw_input["rentals"].each do |rental|
+    raw_input["rentals"].each do |rental_data|
       res = Hash.new
-      computation of rental_nb_of_days
-      rental_start_date = Date.parse(rental["start_date"]).mjd
-      rental_end_date = Date.parse(rental["end_date"]).mjd
-      rental_nb_of_days = rental_end_date - rental_start_date + 1
-      rental_car_id = rental["car_id"]
-      rental_distance = rental["distance"]
-      # rental2 = Rental.new(rental)
-      # binding.pry
-
-      car_array = raw_input["cars"].select { |car| car["id"] == rental2.car_id }
-      # computation of price per day
-      price_per_day = car_array.first["price_per_day"]
-      price_per_km = car_array.first["price_per_km"]
-      # computation of price
-      total_price_time_component = rental2.nb_of_days * price_per_day
-      total_price_distance_component = rental2.distance * price_per_km
-      rental_total_price = total_price_time_component + total_price_distance_component
-      # preparation of results 1
-      res["id"] = rental2.id
-      res["price"] = rental_total_price
+      rental = Rental.new(rental_data)
+      car = Car.new(raw_input["cars"].select { |car| car["id"] == rental.car_id }.first)
+      res["id"] = rental.id
+      res["price"] = rental.total_price(car)
       results << res
     end
-    # preparation of results 2
+    prepare_json(results)
+  end
+
+  def prepare_json(results)
     final_result = Hash.new
     final_result["rentals"] = results
     File.open('output2.json', 'w') do |file|
@@ -38,3 +28,5 @@ raw_input = JSON.parse(IO.read('data.json'))
     end
     puts JSON.pretty_generate(final_result)
   end
+
+  price_of_rental

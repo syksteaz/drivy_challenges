@@ -10,5 +10,11 @@ class Rental
     @distance = attrs["distance"]
     @nb_of_days = @end_date - @start_date + 1
   end
+
+  def total_price(car)
+    total_price_time_component = self.nb_of_days * car.price_per_day
+    total_price_distance_component = self.distance * car.price_per_km
+    rental_total_price = total_price_time_component + total_price_distance_component
+  end
 end
 
