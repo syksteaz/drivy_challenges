@@ -30,19 +30,19 @@ class Rental
     discount_by_30_max_threshold = 10
     discount_by_50_min_threshold = 10
 
-    days_at_full_price = rental_length >= 1 ? 1 : rental_length # 1 day 100
+    days_at_full_price = rental_length >= 1 ? 1 : rental_length
     days_at_10_discount = rental_length > discount_by_10_max_threshold ? (discount_by_10_max_threshold -
-      discount_by_10_min_threshold ) : ( rental_length - discount_by_10_min_threshold ) # 3 day 270
+      discount_by_10_min_threshold ) : ( rental_length - discount_by_10_min_threshold )
     days_at_30_discount = rental_length > discount_by_30_max_threshold ? (discount_by_30_max_threshold -
-      discount_by_30_min_threshold ) : ( rental_length - discount_by_30_min_threshold ) # 6 day 420
+      discount_by_30_min_threshold ) : ( rental_length - discount_by_30_min_threshold )
     days_at_50_discount = rental_length > discount_by_50_min_threshold ? (rental_length -
-      discount_by_50_min_threshold ) : 0 # 2 day 100
+      discount_by_50_min_threshold ) : 0
 
     full_price_component = (days_at_full_price > 0 ? days_at_full_price : 0) * price_per_day
     price_discount_by_10_component = (days_at_10_discount > 0 ? days_at_10_discount : 0) * price_per_day_discounted_by_10
     price_discount_by_30_component = (days_at_30_discount > 0 ? days_at_30_discount : 0) * price_per_day_discounted_by_30
     price_discount_by_50_component = (days_at_50_discount > 0 ? days_at_50_discount : 0) * price_per_day_discounted_by_50
-    price = full_price_component.to_i +
+    full_price_component.to_i +
     price_discount_by_10_component.to_i +
     price_discount_by_30_component.to_i +
     price_discount_by_50_component.to_i

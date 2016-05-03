@@ -6,10 +6,10 @@ require_relative 'commission'
 
   def produce_output_data_from_input_data
     raw_input = JSON.parse(IO.read('data.json'))
-    results = Array.new
+    results = []
     raw_input["rentals"].each do |rental_data|
       rental = Rental.new(rental_data)
-      car = Car.new(raw_input["cars"].select { |car| car["id"] == rental.car_id })
+      car = Car.new(raw_input['cars'].select { |car| car['id'] == rental.car_id })
       rental.price = rental.compute_rental_price(car.price_per_km, car.price_per_day)
       commission = Commission.new.computation_of_commission_amount_and_fees(rental.price, rental.length)
       results << prepare_intermediary_result_hash_of_data(rental.id, rental.price, commission)
@@ -21,16 +21,17 @@ require_relative 'commission'
   private
 
   def prepare_intermediary_result_hash_of_data(rental_id, rental_price, commission)
-    res = Hash.new
-    res["id"] = rental_id
-    res["price"] = rental_price
-    res["commission"] = commission
+    res = {}
+    res['id'] = rental_id
+    res['price'] = rental_price
+    res['commission'] = commission
     return res
   end
 
   def prepare_hash_of_date_to_be_transfered_to_json(results)
     final_result = Hash.new
-    final_result["rentals"] = results
+    final_result['rentals'] = results
+    return final_result
   end
 
   def write_to_json_file(final_result)
