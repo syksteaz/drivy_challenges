@@ -9,7 +9,7 @@ require_relative 'commission'
     results = []
     raw_input["rentals"].each do |rental_data|
       rental = Rental.new(rental_data)
-      car = Car.new(raw_input['cars'].select { |car| car['id'] == rental.car_id })
+      car = Car.new(raw_input['cars'].select { |car| car['id'] == rental.car_id }) # ici remonter la création de la car en utilisant rental_data plutot que car.id
       rental.price = rental.compute_rental_price(car.price_per_km, car.price_per_day)
       commission = Commission.new.computation_of_commission_amount_and_fees(rental.price, rental.length)
       results << prepare_intermediary_result_hash_of_data(rental.id, rental.price, commission)
