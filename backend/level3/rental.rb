@@ -8,7 +8,14 @@ class Rental
     @end_date = Date.parse(rental_data["end_date"]).mjd
     @length = Date.parse(rental_data["end_date"]).mjd - Date.parse(rental_data["start_date"]).mjd + 1
     @distance = rental_data["distance"]
+    # set_total_price
+    # ici mettre un @total_price plutôt que de le calculer plus tard
   end
+
+  # def set_total_price
+
+  #   @total_price = ???
+  # end
 
   def compute_rental_price(car_price_per_km, car_price_per_day)
     (compute_rental_price_distance_component(car_price_per_km) +
