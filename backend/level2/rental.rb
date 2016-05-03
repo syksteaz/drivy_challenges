@@ -26,7 +26,7 @@ class Rental
   end
 
   def define_price_variables(car)
-    @price_per_day = car.price_per_day
+    @price_per_day = car.price_per_day # pas indispensable de remettre ça dans une variable
     @price_per_day_discounted_by_10 = @price_per_day * 0.9 # pas indispensable
     @price_per_day_discounted_by_30 = @price_per_day * 0.7
     @price_per_day_discounted_by_50 = @price_per_day * 0.5
