@@ -4,6 +4,7 @@ require 'pry'
 require_relative 'car'
 require_relative 'rental'
 require_relative 'commission'
+require_relative 'payment_action'
 
   def produce_output_data_from_input_data
     raw_input = JSON.parse(IO.read('data.json'))
@@ -13,13 +14,25 @@ require_relative 'commission'
       rental = Rental.new(rental_data, car)
       commission = Commission.new(rental)
       results <<  { 'id'      => rental.id,
-                    'actions' => rental.compute_who_owe_what(commission, rental.deductible_reduction_amount)
+                    'actions' => strucure_payment_actions_data(rental, commission)
                   }
     end
     write_to_json_file(results)
   end
 
   private
+
+  def strucure_payment_actions_data(rental, commission)
+    res = []
+    %w(driver owner insurance assistance drivy).each do |actor|
+      payment_action = PaymentAction.new(actor, rental, commission)
+      res << {  'who' => payment_action.who,
+                'type' => payment_action.type,
+                'amount' => payment_action.amount}
+    end
+    return res
+  end
+
 
   def write_to_json_file(results)
     final_result = {}

@@ -67,29 +67,4 @@ class Rental
   def compute_deductible_reduction_amount(rental_length, is_deductible_reduction)
     is_deductible_reduction ? (rental_length * DEDUCTIBLE_REDUCTION_PRICE_PER_DAY) : 0
   end
-
-  def compute_who_owe_what(commission, deductible_reduction_amount)
-    who_owe_what_results = []
-    list_of_amounts =
-    {
-      driver: self.total_price + deductible_reduction_amount,
-      owner: (self.total_price * 0.7).to_i,
-      insurance: commission.insurance_fee,
-      assistance: commission.roadside_assistance_fee,
-      drivy: (commission.drivy_fee + deductible_reduction_amount).to_i
-    }
-
-    %w(driver owner insurance assistance drivy).each do |actor|
-      hash_of_results = {}
-      hash_of_results['who'] = actor
-      if actor == 'driver'
-        hash_of_results['type'] = 'debit'
-      else
-        hash_of_results['type'] = 'credit'
-      end
-      hash_of_results['amount'] = list_of_amounts[actor.to_sym]
-      who_owe_what_results << hash_of_results
-    end
-    return who_owe_what_results
-  end
 end
