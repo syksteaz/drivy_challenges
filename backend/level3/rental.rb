@@ -1,50 +1,62 @@
 class Rental
-  attr_accessor :id, :car_id, :start_date, :end_date, :length, :distance, :price
+  attr_accessor :id, :car_id, :distance, :start_date, :end_date, :nb_of_days, :total_price
 
-  def initialize(rental_data)
-    @id = rental_data["id"]
-    @car_id = rental_data["car_id"]
-    @start_date = Date.parse(rental_data["start_date"]).mjd
-    @end_date = Date.parse(rental_data["end_date"]).mjd
-    @length = Date.parse(rental_data["end_date"]).mjd - Date.parse(rental_data["start_date"]).mjd + 1
-    @distance = rental_data["distance"]
+  DISCOUNT_BY_10_MIN_THRESHOLD = 1
+  DISCOUNT_BY_30_MIN_THRESHOLD = 4
+  DISCOUNT_BY_50_MIN_THRESHOLD = 10
+  MAX = 1000
+
+  def initialize(rental = {}, car)
+    @id = rental['id']
+    @car_id = rental['car_id']
+    @distance = rental['distance']
+    @start_date = Date.parse(rental['start_date']).mjd
+    @end_date = Date.parse(rental['end_date']).mjd
+    @nb_of_days = end_date - start_date + 1
+    @total_price = computation_of_total_price(car)
   end
 
-  def compute_rental_price(car_price_per_km, car_price_per_day)
-    (compute_rental_price_distance_component(car_price_per_km) +
-    compute_rental_price_time_component(car_price_per_day, self.length).to_i).to_i
+  def computation_of_total_price(car)
+    (self.computation_of_price_distance_component(car) +
+    self.computation_of_price_time_component(car)).to_i
   end
 
-  def compute_rental_price_distance_component(car_price_per_km)
-    self.distance * car_price_per_km
+  def computation_of_price_distance_component(car)
+    @distance * car.price_per_km
   end
 
-  def compute_rental_price_time_component(car_price_per_day, rental_length)
-    price_per_day = car_price_per_day
-    price_per_day_discounted_by_10 = price_per_day * 0.9
-    price_per_day_discounted_by_30 = price_per_day * 0.7
-    price_per_day_discounted_by_50 = price_per_day * 0.5
-    discount_by_10_min_threshold = 1
-    discount_by_10_max_threshold = 4
-    discount_by_30_min_threshold = 4
-    discount_by_30_max_threshold = 10
-    discount_by_50_min_threshold = 10
+  def computation_of_price_time_component(car)
+    self.compute_discounted_price(car, compute_nb_of_days_at_each_price)
+  end
 
-    days_at_full_price = rental_length >= 1 ? 1 : rental_length
-    days_at_10_discount = rental_length > discount_by_10_max_threshold ? (discount_by_10_max_threshold -
-      discount_by_10_min_threshold ) : ( rental_length - discount_by_10_min_threshold )
-    days_at_30_discount = rental_length > discount_by_30_max_threshold ? (discount_by_30_max_threshold -
-      discount_by_30_min_threshold ) : ( rental_length - discount_by_30_min_threshold )
-    days_at_50_discount = rental_length > discount_by_50_min_threshold ? (rental_length -
-      discount_by_50_min_threshold ) : 0
+  def compute_discounted_price(car, count_of_nb_of_days_at_each_price)
+    count_of_nb_of_days_at_each_price[0][:full_price] * car.price_per_day +
+    count_of_nb_of_days_at_each_price[0][:discount_10] * car.price_per_day * 0.9 +
+    count_of_nb_of_days_at_each_price[0][:discount_30] * car.price_per_day * 0.7 +
+    count_of_nb_of_days_at_each_price[0][:discount_50] * car.price_per_day * 0.5
+  end
 
-    full_price_component = (days_at_full_price > 0 ? days_at_full_price : 0) * price_per_day
-    price_discount_by_10_component = (days_at_10_discount > 0 ? days_at_10_discount : 0) * price_per_day_discounted_by_10
-    price_discount_by_30_component = (days_at_30_discount > 0 ? days_at_30_discount : 0) * price_per_day_discounted_by_30
-    price_discount_by_50_component = (days_at_50_discount > 0 ? days_at_50_discount : 0) * price_per_day_discounted_by_50
-    full_price_component.to_i +
-    price_discount_by_10_component.to_i +
-    price_discount_by_30_component.to_i +
-    price_discount_by_50_component.to_i
+  def compute_nb_of_days_at_each_price
+    count_of_nb_of_days_at_each_price = []
+    nb_of_days_at_each_price_detail = {}
+    if self.nb_of_days >= DISCOUNT_BY_10_MIN_THRESHOLD
+      nb_of_days_at_each_price_detail[:full_price] = 1
+    else
+      nb_of_days_at_each_price_detail[:full_price] = self.nb_of_days
+    end
+    self.nb_of_days_at_price_loop(DISCOUNT_BY_10_MIN_THRESHOLD, DISCOUNT_BY_30_MIN_THRESHOLD, nb_of_days_at_each_price_detail, :discount_10 )
+    self.nb_of_days_at_price_loop(DISCOUNT_BY_30_MIN_THRESHOLD, DISCOUNT_BY_50_MIN_THRESHOLD, nb_of_days_at_each_price_detail, :discount_30 )
+    self.nb_of_days_at_price_loop(DISCOUNT_BY_50_MIN_THRESHOLD, MAX, nb_of_days_at_each_price_detail, :discount_50 )
+    count_of_nb_of_days_at_each_price << nb_of_days_at_each_price_detail
+  end
+
+  def nb_of_days_at_price_loop(min_threshold, max_threshold, hash_name, symbol_for_hash)
+    if self.nb_of_days <= min_threshold
+      hash_name[symbol_for_hash] = 0
+    elsif self.nb_of_days > max_threshold
+      hash_name[symbol_for_hash] = max_threshold - min_threshold
+    else
+      hash_name[symbol_for_hash] = self.nb_of_days - min_threshold
+    end
   end
 end
