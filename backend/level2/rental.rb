@@ -1,18 +1,19 @@
 class Rental
-  attr_accessor :id, :car_id, :distance, :start_date, :end_date, :nb_of_days
+  attr_accessor :id, :car_id, :distance, :start_date, :end_date, :nb_of_days, :total_price
 
   DISCOUNT_BY_10_MIN_THRESHOLD = 1
   DISCOUNT_BY_30_MIN_THRESHOLD = 4
   DISCOUNT_BY_50_MIN_THRESHOLD = 10
   MAX = 1000
 
-  def initialize(rental = {})
+  def initialize(rental = {}, car)
     @id = rental['id']
     @car_id = rental['car_id']
     @distance = rental['distance']
     @start_date = Date.parse(rental['start_date']).mjd
     @end_date = Date.parse(rental['end_date']).mjd
     @nb_of_days = end_date - start_date + 1
+    @total_price = computation_of_total_price(car)
   end
 
   def computation_of_total_price(car)
