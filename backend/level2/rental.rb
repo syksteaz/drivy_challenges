@@ -10,8 +10,8 @@ class Rental
     @id = rental['id']
     @car_id = rental['car_id']
     @distance = rental['distance']
-    @start_date = Date.parse(rental['start_date']).mjd
-    @end_date = Date.parse(rental['end_date']).mjd
+    @start_date = Date.parse(rental['start_date'])
+    @end_date = Date.parse(rental['end_date'])
     @nb_of_days = end_date - start_date + 1
     @total_price = computation_of_total_price(car)
   end
