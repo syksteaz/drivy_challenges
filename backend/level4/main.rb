@@ -8,7 +8,7 @@ require_relative 'commission'
   def produce_output_data_from_input_data
     raw_input = JSON.parse(IO.read('data.json'))
     results = []
-    raw_input["rentals"].each do |rental_data|
+    raw_input['rentals'].each do |rental_data|
       car = Car.new(raw_input['cars'].select { |car| car['id'] == rental_data['car_id'] })
       rental = Rental.new(rental_data, car)
       commission = Commission.new(rental)
