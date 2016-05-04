@@ -8,3 +8,12 @@
     { "id": 3, "car_id": 1, "start_date": "2015-07-3", "end_date": "2015-07-14", "distance": 1000, "deductible_reduction": true }
   ]
 }
+
+
+// edge cases
+  // car price per day = 0 because drivy make a promotion
+  // deductible reduction is empty (neither true or false) => par défaut mettre à false
+  // distance is empty => mettre une distance par défaut
+
+
+// cf. http://programmers.stackexchange.com/questions/72761/how-do-you-identify-edge-cases-on-algorithms
