@@ -1,82 +1,93 @@
 class Rental
-  attr_accessor :id, :car_id, :start_date, :end_date, :length, :distance, :price, :is_deductible_reduction, :deductible_reduction_amount
+  attr_accessor :id, :car_id, :distance, :start_date, :end_date, :nb_of_days, :total_price, :is_deductible_reduction, :deductible_reduction_amount
 
-  def initialize(rental_data)
-    @id = rental_data["id"]
-    @car_id = rental_data["car_id"]
-    @start_date = Date.parse(rental_data["start_date"]).mjd
-    @end_date = Date.parse(rental_data["end_date"]).mjd
-    @length = Date.parse(rental_data["end_date"]).mjd - Date.parse(rental_data["start_date"]).mjd + 1
-    @distance = rental_data["distance"]
-    @is_deductible_reduction = rental_data["deductible_reduction"]
+  DISCOUNT_BY_10_MIN_THRESHOLD = 1
+  DISCOUNT_BY_30_MIN_THRESHOLD = 4
+  DISCOUNT_BY_50_MIN_THRESHOLD = 10
+  MAX = 1000
+  DEDUCTIBLE_REDUCTION_PRICE_PER_DAY = 400
+
+
+  def initialize(rental = {}, car)
+    @id = rental['id']
+    @car_id = rental['car_id']
+    @distance = rental['distance']
+    @start_date = Date.parse(rental['start_date']).mjd
+    @end_date = Date.parse(rental['end_date']).mjd
+    @nb_of_days = end_date - start_date + 1
+    @total_price = computation_of_total_price(car)
+    @is_deductible_reduction = rental['deductible_reduction']
+    @deductible_reduction_amount = compute_deductible_reduction_amount(@nb_of_days, @is_deductible_reduction)
   end
 
-  def compute_rental_price(car_price_per_km, car_price_per_day)
-    self.price = (compute_rental_price_distance_component(car_price_per_km) +
-    compute_rental_price_time_component(car_price_per_day, self.length).to_i).to_i
+  def computation_of_total_price(car)
+    (self.computation_of_price_distance_component(car) +
+    self.computation_of_price_time_component(car)).to_i
   end
 
-  def compute_rental_price_distance_component(car_price_per_km)
-    self.distance * car_price_per_km
+  def computation_of_price_distance_component(car)
+    @distance * car.price_per_km
   end
 
-  def compute_rental_price_time_component(car_price_per_day, rental_length)
-    price_per_day = car_price_per_day
-    price_per_day_discounted_by_10 = price_per_day * 0.9
-    price_per_day_discounted_by_30 = price_per_day * 0.7
-    price_per_day_discounted_by_50 = price_per_day * 0.5
-    discount_by_10_min_threshold = 1
-    discount_by_10_max_threshold = 4
-    discount_by_30_min_threshold = 4
-    discount_by_30_max_threshold = 10
-    discount_by_50_min_threshold = 10
+  def computation_of_price_time_component(car)
+    self.compute_discounted_price(car, compute_nb_of_days_at_each_price)
+  end
 
-    days_at_full_price = rental_length >= 1 ? 1 : rental_length # 1 day 100
-    days_at_10_discount = rental_length > discount_by_10_max_threshold ? (discount_by_10_max_threshold -
-      discount_by_10_min_threshold ) : ( rental_length - discount_by_10_min_threshold ) # 3 day 270
-    days_at_30_discount = rental_length > discount_by_30_max_threshold ? (discount_by_30_max_threshold -
-      discount_by_30_min_threshold ) : ( rental_length - discount_by_30_min_threshold ) # 6 day 420
-    days_at_50_discount = rental_length > discount_by_50_min_threshold ? (rental_length -
-      discount_by_50_min_threshold ) : 0 # 2 day 100
+  def compute_discounted_price(car, count_of_nb_of_days_at_each_price)
+    count_of_nb_of_days_at_each_price[0][:full_price] * car.price_per_day +
+    count_of_nb_of_days_at_each_price[0][:discount_10] * car.price_per_day * 0.9 +
+    count_of_nb_of_days_at_each_price[0][:discount_30] * car.price_per_day * 0.7 +
+    count_of_nb_of_days_at_each_price[0][:discount_50] * car.price_per_day * 0.5
+  end
 
-    full_price_component = (days_at_full_price > 0 ? days_at_full_price : 0) * price_per_day
-    price_discount_by_10_component = (days_at_10_discount > 0 ? days_at_10_discount : 0) * price_per_day_discounted_by_10
-    price_discount_by_30_component = (days_at_30_discount > 0 ? days_at_30_discount : 0) * price_per_day_discounted_by_30
-    price_discount_by_50_component = (days_at_50_discount > 0 ? days_at_50_discount : 0) * price_per_day_discounted_by_50
-    price = full_price_component.to_i +
-    price_discount_by_10_component.to_i +
-    price_discount_by_30_component.to_i +
-    price_discount_by_50_component.to_i
+  def compute_nb_of_days_at_each_price
+    count_of_nb_of_days_at_each_price = []
+    nb_of_days_at_each_price_detail = {}
+    if self.nb_of_days >= DISCOUNT_BY_10_MIN_THRESHOLD
+      nb_of_days_at_each_price_detail[:full_price] = 1
+    else
+      nb_of_days_at_each_price_detail[:full_price] = self.nb_of_days
+    end
+    self.nb_of_days_at_price_loop(DISCOUNT_BY_10_MIN_THRESHOLD, DISCOUNT_BY_30_MIN_THRESHOLD, nb_of_days_at_each_price_detail, :discount_10 )
+    self.nb_of_days_at_price_loop(DISCOUNT_BY_30_MIN_THRESHOLD, DISCOUNT_BY_50_MIN_THRESHOLD, nb_of_days_at_each_price_detail, :discount_30 )
+    self.nb_of_days_at_price_loop(DISCOUNT_BY_50_MIN_THRESHOLD, MAX, nb_of_days_at_each_price_detail, :discount_50 )
+    count_of_nb_of_days_at_each_price << nb_of_days_at_each_price_detail
+  end
+
+  def nb_of_days_at_price_loop(min_threshold, max_threshold, hash_name, symbol_for_hash)
+    if self.nb_of_days <= min_threshold
+      hash_name[symbol_for_hash] = 0
+    elsif self.nb_of_days > max_threshold
+      hash_name[symbol_for_hash] = max_threshold - min_threshold
+    else
+      hash_name[symbol_for_hash] = self.nb_of_days - min_threshold
+    end
   end
 
   def compute_deductible_reduction_amount(rental_length, is_deductible_reduction)
-    deductible_reduction_price_per_day = 400
-    is_deductible_reduction ? (rental_length * deductible_reduction_price_per_day) : 0
+    is_deductible_reduction ? (rental_length * DEDUCTIBLE_REDUCTION_PRICE_PER_DAY) : 0
   end
 
-  def compute_who_owe_what(list_of_commissions, deductible_reduction_amount)
-    who_owe_what_results = Array.new
-    list_of_amounts = Hash.new
-    list_of_amounts = {
-      driver: self.price + deductible_reduction_amount,
-      owner: (self.price * 0.7).to_i,
-      insurance: list_of_commissions["insurance_fee"],
-      assistance: list_of_commissions["assistance_fee"],
-      drivy: (list_of_commissions["drivy_fee"] + deductible_reduction_amount).to_i
+  def compute_who_owe_what(commission, deductible_reduction_amount)
+    who_owe_what_results = []
+    list_of_amounts =
+    {
+      driver: self.total_price + deductible_reduction_amount,
+      owner: (self.total_price * 0.7).to_i,
+      insurance: commission.insurance_fee,
+      assistance: commission.roadside_assistance_fee,
+      drivy: (commission.drivy_fee + deductible_reduction_amount).to_i
     }
 
-    list_of_actors_involved_in_payment_process = %w(driver owner insurance assistance drivy)
-    list_of_actors_involved_in_payment_process.each do |actor|
-      hash_of_results = Hash.new
-      list_of_info_to_produce = %w(who type amount)
-
-      hash_of_results[list_of_info_to_produce[0]] = actor
-      if actor == "driver"
-        hash_of_results[list_of_info_to_produce[1]] = "debit"
+    %w(driver owner insurance assistance drivy).each do |actor|
+      hash_of_results = {}
+      hash_of_results['who'] = actor
+      if actor == 'driver'
+        hash_of_results['type'] = 'debit'
       else
-        hash_of_results[list_of_info_to_produce[1]] = "credit"
+        hash_of_results['type'] = 'credit'
       end
-      hash_of_results[list_of_info_to_produce[2]] = list_of_amounts[actor.to_sym]
+      hash_of_results['amount'] = list_of_amounts[actor.to_sym]
       who_owe_what_results << hash_of_results
     end
     return who_owe_what_results
