@@ -112,4 +112,13 @@ class Rental
     end
     return change_actions
   end
+
+
+  def self.build_new_rental_data(old_rental_data, rental_data_modifications)
+    new_rental_data = old_rental_data.clone
+    old_rental_data.keys.each do |key|
+      new_rental_data[key] = rental_data_modifications[key] if rental_data_modifications[key] != nil
+    end
+    return new_rental_data
+  end
 end

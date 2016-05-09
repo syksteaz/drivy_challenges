@@ -18,3 +18,5 @@
   // give the car as parameter to the create_new_and_old_rental method
   // instead of taking car_id on car.id use the hashes
 
+
+
