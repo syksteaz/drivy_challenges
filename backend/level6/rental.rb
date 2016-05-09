@@ -93,23 +93,15 @@ class Rental
     return who_owe_what_results
   end
 
-  def compute_who_owe_what_after_rental_modifications(car)
-    self.compute_rental_price(car.price_per_km, car.price_per_day)
-    commission = Commission.new.computation_of_commission_amount_and_fees(self.price, self.length)
-    self.deductible_reduction_amount = self.compute_deductible_reduction_amount(self.length, self.is_deductible_reduction)
-    self.compute_who_owe_what(commission, self.deductible_reduction_amount)
-  end
-
   def compute_change_actions(old_rental, new_rental, car)
-    old_actions = old_rental.compute_who_owe_what_after_rental_modifications(car)
-    new_actions = new_rental.compute_who_owe_what_after_rental_modifications(car)
+    old_actions = old_rental.compute_who_owe_what(Commission.new(old_rental))
+    new_actions = new_rental.compute_who_owe_what(Commission.new(new_rental))
 
     change_actions = []
     new_actions.each do |new_action|
-      each_action_result = {}
       old_action = old_actions.select { |k| k['who'] == new_action['who'] }.first
       rental_modification_amount = new_action['amount'] - old_action['amount']
-      each_action_result['who'] = new_action['who']
+      each_action_result = { 'who'=> new_action['who'] }
       if rental_modification_amount < 0.0
         each_action_result['who'] != 'driver' ? each_action_result['type'] = 'debit' : each_action_result['type'] = 'credit'
       elsif rental_modification_amount > 0.0
