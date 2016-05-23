@@ -33,7 +33,7 @@
     },
     {
       "id": 2,
-      "rental_id": 2,
+      "rental_id": 3,
       "actions": [
         {
           "who": "driver",

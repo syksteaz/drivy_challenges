@@ -14,7 +14,7 @@ require_relative 'payment_action'
       rental = Rental.new(rental_data, car)
       commission = Commission.new(rental)
       results <<  { 'id'      => rental.id,
-                    'actions' => strucure_payment_actions_data(rental, commission)
+                    'actions' => compute_and_structure_payment_actions_data(rental, commission)
                   }
     end
     write_to_json_file(results)
@@ -22,7 +22,7 @@ require_relative 'payment_action'
 
   private
 
-  def strucure_payment_actions_data(rental, commission)
+  def compute_and_structure_payment_actions_data(rental, commission)
     res = []
     %w(driver owner insurance assistance drivy).each do |actor|
       payment_action = PaymentAction.new(actor, rental, commission)
